@@ -1,8 +1,8 @@
 [build]
-command = "npm run install:all && npm run build"
+buildCommand = "cd backend && npm install && cd ../frontend && npm install --include=dev && npm run build"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "cd backend && node src/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 10
 restartPolicyType = "ON_FAILURE"
