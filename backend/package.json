@@ -1,0 +1,14 @@
+{
+  "name": "yt-comment-scraper-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.0",
+    "axios": "^1.7.0"
+  }
+}
