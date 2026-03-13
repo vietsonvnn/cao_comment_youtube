@@ -12,7 +12,7 @@ body {
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #444; }
 
-input[type="text"], input[type="url"] {
+input[type="text"], input[type="url"], textarea {
   padding: 12px 16px;
   background: #0f0f0f;
   border: 1px solid #333;
@@ -22,8 +22,8 @@ input[type="text"], input[type="url"] {
   outline: none;
   width: 100%;
 }
-input:focus { border-color: #ff4444; }
-input::placeholder { color: #666; }
+input:focus, textarea:focus { border-color: #ff4444; }
+input::placeholder, textarea::placeholder { color: #666; }
 
 button {
   cursor: pointer;

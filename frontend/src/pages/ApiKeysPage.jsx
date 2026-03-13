@@ -204,10 +204,17 @@ export default function ApiKeysPage({ onKeysUpdate }) {
             placeholder={"Dán API key tại đây... (AIzaSy...)\nMỗi dòng 1 key để thêm hàng loạt"}
             value={newKey}
             onChange={e => setNewKey(e.target.value)}
-            rows={newKey.includes('\n') ? Math.min(8, newKey.split('\n').length + 1) : 1}
-            style={{ flex: 1, fontFamily: 'monospace', resize: 'vertical', minHeight: 40 }}
+            rows={newKey.includes('\n') ? Math.min(8, newKey.split('\n').length + 1) : 2}
+            style={{
+              flex: 1,
+              fontFamily: 'monospace',
+              fontSize: 13,
+              resize: 'vertical',
+              minHeight: 48,
+              lineHeight: 1.6,
+            }}
           />
-          <button style={{ ...s.btn, alignSelf: 'flex-start' }} onClick={handleAdd}>+ Thêm key</button>
+          <button style={{ ...s.btn, alignSelf: 'flex-start', marginTop: 0 }} onClick={handleAdd}>+ Thêm key</button>
         </div>
         <p style={s.hint}>
           Hỗ trợ dán nhiều key cùng lúc — mỗi dòng 1 key. Lấy API key tại: console.cloud.google.com → APIs & Services → Credentials

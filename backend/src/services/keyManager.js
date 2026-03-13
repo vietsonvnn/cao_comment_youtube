@@ -6,6 +6,7 @@ import axios from 'axios';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const KEYS_FILE = path.join(DATA_DIR, 'keys.json');
+const USAGE_FILE = path.join(DATA_DIR, 'usage.json');
 
 // In-memory state
 let keys = [];
@@ -16,6 +17,20 @@ function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
+function loadUsage() {
+  ensureDataDir();
+  try {
+    if (fs.existsSync(USAGE_FILE)) {
+      usage = JSON.parse(fs.readFileSync(USAGE_FILE, 'utf-8'));
+    }
+  } catch { usage = {}; }
+}
+
+function saveUsage() {
+  ensureDataDir();
+  fs.writeFileSync(USAGE_FILE, JSON.stringify(usage, null, 2));
+}
+
 function loadKeys() {
   ensureDataDir();
   if (fs.existsSync(KEYS_FILE)) {
@@ -24,13 +39,15 @@ function loadKeys() {
     keys = [];
     saveKeys();
   }
-  // Init usage for each key
+  // Load persisted usage, then init missing entries
+  loadUsage();
   const today = new Date().toISOString().split('T')[0];
   for (const k of keys) {
     if (!usage[k.id] || usage[k.id].lastReset !== today) {
       usage[k.id] = { used: 0, lastReset: today };
     }
   }
+  saveUsage();
 }
 
 function saveKeys() {
@@ -86,6 +103,7 @@ export function trackUsage(units = 1) {
     usage[key.id] = { used: 0, lastReset: today };
   }
   usage[key.id].used += units;
+  saveUsage();
 }
 
 export function getTotalQuotaRemaining() {
@@ -127,6 +145,7 @@ export function addKey(apiKey) {
   keys.push(entry);
   usage[id] = { used: 0, lastReset: new Date().toISOString().split('T')[0] };
   saveKeys();
+  saveUsage();
   return entry;
 }
 
@@ -135,6 +154,7 @@ export function removeKey(id) {
   delete usage[id];
   if (activeKeyIndex >= keys.length) activeKeyIndex = Math.max(0, keys.length - 1);
   saveKeys();
+  saveUsage();
 }
 
 export async function testKey(apiKey) {
