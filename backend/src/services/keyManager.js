@@ -38,8 +38,14 @@ function saveKeys() {
   fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2));
 }
 
+const DEFAULT_KEY = 'AIzaSyB85mcCpPH1WqazToIyIuKas1aK2O-vUdQ';
+
 export function init() {
   loadKeys();
+  // Tự động thêm key mặc định nếu chưa có key nào
+  if (keys.length === 0) {
+    addKey(DEFAULT_KEY);
+  }
 }
 
 export function getAllKeys() {
