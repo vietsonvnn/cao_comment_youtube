@@ -47,8 +47,8 @@ export default function LogPanel({ logs = [] }) {
   return (
     <div style={styles.panel}>
       <div style={styles.header}>
-        <span>Activity Log</span>
-        <span>Auto-scroll ✓</span>
+        <span>Nhật ký hoạt động</span>
+        <span>Tự cuộn ✓</span>
       </div>
       <div style={styles.content}>
         {logs.map((log, i) => (

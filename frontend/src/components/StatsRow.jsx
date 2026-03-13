@@ -22,7 +22,7 @@ function formatElapsed(ms) {
   const s = Math.floor(ms / 1000);
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m} phut`;
+  if (m < 60) return `${m} phút`;
   const h = Math.floor(m / 60);
   return `${h}h ${m % 60}p`;
 }
@@ -39,30 +39,30 @@ export default function StatsRow({ progress }) {
   return (
     <div style={styles.row}>
       <div style={styles.card}>
-        <div style={styles.label}>Tong video</div>
+        <div style={styles.label}>Tổng video</div>
         <div style={styles.value}>{totalVideos.toLocaleString()}</div>
-        <div style={styles.sub}>Da quet: {processedVideos} / {totalVideos}</div>
+        <div style={styles.sub}>Đã quét: {processedVideos} / {totalVideos}</div>
       </div>
       <div style={styles.card}>
-        <div style={styles.label}>Comments thu duoc</div>
+        <div style={styles.label}>Bình luận thu được</div>
         <div style={{ ...styles.value, color: '#4ade80' }}>
           {stats.totalComments.toLocaleString()}
         </div>
-        <div style={styles.sub}>Loai bo chu kenh: {stats.filteredOwner.toLocaleString()}</div>
+        <div style={styles.sub}>Loại bỏ chủ kênh: {stats.filteredOwner.toLocaleString()}</div>
       </div>
       <div style={styles.card}>
-        <div style={styles.label}>API Quota da dung</div>
+        <div style={styles.label}>API Quota đã dùng</div>
         <div style={{ ...styles.value, color: '#fbbf24' }}>
           {stats.quotaUsed.toLocaleString()}
         </div>
-        <div style={styles.sub}>Key dang dung: #{stats.activeKeyIndex + 1}</div>
+        <div style={styles.sub}>Key đang dùng: #{stats.activeKeyIndex + 1}</div>
       </div>
       <div style={styles.card}>
-        <div style={styles.label}>Thoi gian</div>
+        <div style={styles.label}>Thời gian</div>
         <div style={styles.value}>
           {estTotal > 0 ? `~${formatElapsed(estTotal)}` : '—'}
         </div>
-        <div style={styles.sub}>Da chay: {formatElapsed(elapsed)}</div>
+        <div style={styles.sub}>Đã chạy: {formatElapsed(elapsed)}</div>
       </div>
     </div>
   );

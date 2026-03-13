@@ -67,18 +67,18 @@ export default function HistoryPage({ onResumeJob }) {
   }
 
   const statusLabels = {
-    done: 'Hoan tat',
-    running: 'Dang chay',
-    paused: 'Tam dung',
-    error: 'Loi',
+    done: 'Hoàn tất',
+    running: 'Đang chạy',
+    paused: 'Tạm dừng',
+    error: 'Lỗi',
   };
 
   return (
     <div style={s.container}>
-      <div style={s.title}>Lich su scraping</div>
+      <div style={s.title}>Lịch sử cào bình luận</div>
 
       {jobs.length === 0 && (
-        <div style={s.empty}>Chua co lich su scraping nao.</div>
+        <div style={s.empty}>Chưa có lịch sử cào bình luận nào.</div>
       )}
 
       {jobs.map(job => (
@@ -88,11 +88,11 @@ export default function HistoryPage({ onResumeJob }) {
             <div style={s.jobTitle}>
               {job.type === 'channel'
                 ? `${job.channelTitle || job.url} — ${job.totalVideos} video`
-                : `Video don: ${job.channelTitle || job.url}`
+                : `Video đơn: ${job.channelTitle || job.url}`
               }
             </div>
             <div style={s.meta}>
-              {job.totalComments.toLocaleString()} comments · {formatDate(job.startedAt)} · {statusLabels[job.status] || job.status}
+              {job.totalComments.toLocaleString()} bình luận · {formatDate(job.startedAt)} · {statusLabels[job.status] || job.status}
             </div>
           </div>
           <div style={s.actions}>
@@ -107,14 +107,14 @@ export default function HistoryPage({ onResumeJob }) {
                 style={{ ...s.btn, ...s.btnPrimary }}
                 onClick={() => onResumeJob && onResumeJob(job.jobId)}
               >
-                Tiep tuc
+                Tiếp tục
               </button>
             )}
             <button
               style={{ ...s.btn, ...s.btnDanger }}
               onClick={() => handleDelete(job.jobId)}
             >
-              Xoa
+              Xoá
             </button>
           </div>
         </div>

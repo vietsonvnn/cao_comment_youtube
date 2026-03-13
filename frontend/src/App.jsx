@@ -3,6 +3,7 @@ import Navbar from './components/Navbar.jsx';
 import ScraperPage from './pages/ScraperPage.jsx';
 import ApiKeysPage from './pages/ApiKeysPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
+import Footer from './components/Footer.jsx';
 import useSSE from './hooks/useSSE.js';
 
 export default function App() {
@@ -60,6 +61,7 @@ export default function App() {
       {activePage === 'history' && (
         <HistoryPage onResumeJob={handleResumeJob} />
       )}
+      <Footer />
     </>
   );
 }

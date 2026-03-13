@@ -113,9 +113,9 @@ export default function ApiKeysPage({ onKeysUpdate }) {
         body: JSON.stringify({ key: key.key.replace(/●/g, '') }), // Won't work with masked keys
       });
       const data = await res.json();
-      alert(data.valid ? 'Key hop le!' : `Key khong hop le: ${data.message}`);
+      alert(data.valid ? 'Key hợp lệ!' : `Key không hợp lệ: ${data.message}`);
     } catch (err) {
-      alert('Loi: ' + err.message);
+      alert('Lỗi: ' + err.message);
     } finally {
       setTesting(null);
     }
@@ -123,13 +123,13 @@ export default function ApiKeysPage({ onKeysUpdate }) {
 
   return (
     <div style={s.container}>
-      <div style={s.title}>Quan ly API Keys</div>
+      <div style={s.title}>Quản lý API Keys</div>
 
       <div style={s.section}>
         <div style={s.sectionTitle}>YouTube Data API v3 Keys</div>
         <p style={s.desc}>
-          Them nhieu API key de tang quota hang ngay. He thong tu dong chuyen key khi quota can.
-          Moi key mien phi co 10,000 units/ngay.
+          Thêm nhiều API key để tăng quota hàng ngày. Hệ thống tự động chuyển key khi quota cạn.
+          Mỗi key miễn phí có 10,000 units/ngày.
         </p>
 
         <div style={s.keyList}>
@@ -150,7 +150,7 @@ export default function ApiKeysPage({ onKeysUpdate }) {
                 </div>
                 <div style={s.keyValue}>
                   {k.key}
-                  {k.isActive && <span style={{ color: '#4ade80', fontSize: 11, marginLeft: 8 }}>← dang dung</span>}
+                  {k.isActive && <span style={{ color: '#4ade80', fontSize: 11, marginLeft: 8 }}>← đang dùng</span>}
                 </div>
                 <div style={s.keyQuota}>
                   <div style={s.barContainer}>
@@ -162,7 +162,7 @@ export default function ApiKeysPage({ onKeysUpdate }) {
                     }} />
                   </div>
                   <div style={s.quotaText}>
-                    {k.quotaUsed.toLocaleString()} / {k.quotaLimit.toLocaleString()} used
+                    {k.quotaUsed.toLocaleString()} / {k.quotaLimit.toLocaleString()} đã dùng
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -177,7 +177,7 @@ export default function ApiKeysPage({ onKeysUpdate }) {
                   <button
                     style={s.btnIcon}
                     onClick={() => handleDelete(k.id)}
-                    title="Xoa"
+                    title="Xoá"
                   >
                     ✕
                   </button>
@@ -187,38 +187,38 @@ export default function ApiKeysPage({ onKeysUpdate }) {
           })}
           {keys.length === 0 && (
             <div style={{ padding: 20, textAlign: 'center', color: '#666' }}>
-              Chua co API key nao. Them key de bat dau su dung.
+              Chưa có API key nào. Thêm key để bắt đầu sử dụng.
             </div>
           )}
         </div>
 
         <hr style={s.divider} />
 
-        <div style={s.sectionTitle}>Them API Key moi</div>
+        <div style={s.sectionTitle}>Thêm API Key mới</div>
         <div style={s.addRow}>
           <input
             type="text"
-            placeholder="Dan API key tai day... (AIzaSy...)"
+            placeholder="Dán API key tại đây... (AIzaSy...)"
             value={newKey}
             onChange={e => setNewKey(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
             style={{ flex: 1, fontFamily: 'monospace' }}
           />
-          <button style={s.btn} onClick={handleAdd}>+ Them key</button>
+          <button style={s.btn} onClick={handleAdd}>+ Thêm key</button>
         </div>
         <p style={s.hint}>
-          Lay API key tai: console.cloud.google.com → APIs & Services → Credentials
+          Lấy API key tại: console.cloud.google.com → APIs & Services → Credentials
         </p>
       </div>
 
       <div style={s.section}>
-        <div style={s.sectionTitle}>Cai dat Key Rotation</div>
+        <div style={s.sectionTitle}>Cài đặt Key Rotation</div>
         <div style={s.optionsRow}>
           <label style={s.checkbox}>
-            <input type="checkbox" defaultChecked /> Tu dong chuyen key khi quota {'<'} 200 units
+            <input type="checkbox" defaultChecked /> Tự động chuyển key khi quota {'<'} 200 units
           </label>
           <label style={s.checkbox}>
-            <input type="checkbox" defaultChecked /> Tu dong resume khi quota reset (00:00 UTC)
+            <input type="checkbox" defaultChecked /> Tự động tiếp tục khi quota reset (00:00 UTC)
           </label>
         </div>
       </div>

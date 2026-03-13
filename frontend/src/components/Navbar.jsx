@@ -56,9 +56,9 @@ const styles = {
 };
 
 const TABS = [
-  { id: 'scraper', label: 'Scraper' },
+  { id: 'scraper', label: 'Cào bình luận' },
   { id: 'apikeys', label: 'API Keys' },
-  { id: 'history', label: 'Lich su' },
+  { id: 'history', label: 'Lịch sử' },
 ];
 
 export default function Navbar({ activePage, onPageChange, keysCount, quotaRemaining }) {
@@ -85,8 +85,8 @@ export default function Navbar({ activePage, onPageChange, keysCount, quotaRemai
       <div style={styles.right}>
         <div style={keysCount > 0 ? styles.status : styles.statusEmpty}>
           {keysCount > 0
-            ? `● ${keysCount} keys active — ${quotaRemaining.toLocaleString()} units con lai`
-            : '● Chua co API key'
+            ? `● ${keysCount} keys hoạt động — ${quotaRemaining.toLocaleString()} units còn lại`
+            : '● Chưa có API key'
           }
         </div>
       </div>

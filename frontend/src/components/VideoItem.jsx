@@ -75,11 +75,11 @@ const styles = {
 };
 
 const STATUS_CONFIG = {
-  running: { label: '⟳ Dang chay', bg: '#1a2a3a', color: '#60a5fa', barColor: '#3b82f6' },
-  done:    { label: '✓ Xong',      bg: '#1a3a1a', color: '#4ade80', barColor: '#22c55e' },
-  pending: { label: '◌ Cho',       bg: '#2a2a2a', color: '#888',    barColor: '#555' },
-  error:   { label: '✕ Loi',       bg: '#3a1a1a', color: '#f87171', barColor: '#ff4444' },
-  disabled:{ label: '⚠ Tat CMT',   bg: '#2a2a1a', color: '#fbbf24', barColor: '#fbbf24' },
+  running: { label: '⟳ Đang chạy', bg: '#1a2a3a', color: '#60a5fa', barColor: '#3b82f6' },
+  done:    { label: '✓ Xong',       bg: '#1a3a1a', color: '#4ade80', barColor: '#22c55e' },
+  pending: { label: '◌ Chờ',        bg: '#2a2a2a', color: '#888',    barColor: '#555' },
+  error:   { label: '✕ Lỗi',        bg: '#3a1a1a', color: '#f87171', barColor: '#ff4444' },
+  disabled:{ label: '⚠ Tắt BL',     bg: '#2a2a1a', color: '#fbbf24', barColor: '#fbbf24' },
 };
 
 export default function VideoItem({ video, jobId }) {
@@ -97,28 +97,28 @@ export default function VideoItem({ video, jobId }) {
 
   let metaText = '';
   if (video.status === 'running') {
-    metaText = `${video.commentCount.toLocaleString()} comments · Trang ${video.page}/${video.totalPages || '?'}`;
+    metaText = `${video.commentCount.toLocaleString()} bình luận · Trang ${video.page}/${video.totalPages || '?'}`;
   } else if (video.status === 'done') {
-    metaText = `${video.fetchedComments.toLocaleString()} comments`;
+    metaText = `${video.fetchedComments.toLocaleString()} bình luận`;
   } else if (video.status === 'disabled') {
-    metaText = 'Comments da bi tat tren video nay';
+    metaText = 'Bình luận đã bị tắt trên video này';
   } else if (video.status === 'error') {
-    metaText = `Loi: ${video.error || 'Unknown'} — ${video.fetchedComments > 0 ? video.fetchedComments.toLocaleString() + ' comments da lay' : ''}`;
+    metaText = `Lỗi: ${video.error || 'Không xác định'} — ${video.fetchedComments > 0 ? video.fetchedComments.toLocaleString() + ' bình luận đã lấy' : ''}`;
   } else {
-    metaText = video.commentCount > 0 ? `~${video.commentCount.toLocaleString()} comments` : 'Cho xu ly';
+    metaText = video.commentCount > 0 ? `~${video.commentCount.toLocaleString()} bình luận` : 'Chờ xử lý';
   }
 
   let progressText = '';
   if (video.status === 'done') {
-    progressText = `${video.fetchedComments.toLocaleString()} comments ✓`;
+    progressText = `${video.fetchedComments.toLocaleString()} bình luận ✓`;
   } else if (video.status === 'running') {
     progressText = `${video.fetchedComments.toLocaleString()} / ${video.commentCount.toLocaleString()}`;
   } else if (video.status === 'disabled') {
-    progressText = '— bo qua —';
+    progressText = '— bỏ qua —';
   } else if (video.status === 'error') {
     progressText = `${video.fetchedComments.toLocaleString()} / ~${video.commentCount.toLocaleString()}`;
   } else {
-    progressText = 'Cho xu ly';
+    progressText = 'Chờ xử lý';
   }
 
   return (
@@ -155,7 +155,7 @@ export default function VideoItem({ video, jobId }) {
             borderColor: video.status === 'done' ? '#2a4a2a' : video.status === 'error' ? '#4a3a1a' : '#333',
           }}
           onClick={handleDownload}
-          title={canDownload ? 'Tai TXT video nay' : 'Chua co du lieu'}
+          title={canDownload ? 'Tải TXT video này' : 'Chưa có dữ liệu'}
         >
           ⬇
         </button>

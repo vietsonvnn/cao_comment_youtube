@@ -87,7 +87,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
       }
       onJobId(data.jobId);
     } catch (err) {
-      alert('Loi: ' + err.message);
+      alert('Lỗi: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -124,11 +124,11 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
     <div style={s.container}>
       {/* Input */}
       <div style={s.section}>
-        <h2 style={s.h2}>Nhap URL YouTube</h2>
+        <h2 style={s.h2}>Nhập URL YouTube</h2>
         <div style={s.inputGroup}>
           <input
             type="text"
-            placeholder="https://www.youtube.com/watch?v=... hoac https://www.youtube.com/@channel"
+            placeholder="https://www.youtube.com/watch?v=... hoặc https://www.youtube.com/@channel"
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleStart()}
@@ -140,32 +140,32 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
               onClick={handleStart}
               disabled={loading}
             >
-              {loading ? '...' : '▶ Bat dau cao'}
+              {loading ? '...' : '▶ Bắt đầu cào'}
             </button>
           )}
           {isRunning && (
             <button style={{ ...s.btn, ...s.btnSecondary }} onClick={handlePause}>
-              ⏸ Tam dung
+              ⏸ Tạm dừng
             </button>
           )}
           {isPaused && (
             <button style={{ ...s.btn, ...s.btnPrimary }} onClick={handleResume}>
-              ▶ Tiep tuc
+              ▶ Tiếp tục
             </button>
           )}
         </div>
         <div style={s.optionsRow}>
           <label style={s.checkbox}>
             <input type="checkbox" checked={options.includeReplies} onChange={e => setOptions(o => ({ ...o, includeReplies: e.target.checked }))} />
-            Bao gom replies
+            Bao gồm replies
           </label>
           <label style={s.checkbox}>
             <input type="checkbox" checked={options.filterOwner} onChange={e => setOptions(o => ({ ...o, filterOwner: e.target.checked }))} />
-            Loai bo comment chu kenh
+            Loại bỏ bình luận chủ kênh
           </label>
           <label style={s.checkbox}>
             <input type="checkbox" checked={options.filterDuplicates} onChange={e => setOptions(o => ({ ...o, filterDuplicates: e.target.checked }))} />
-            Loai bo comment trung lap
+            Loại bỏ bình luận trùng lặp
           </label>
         </div>
 
@@ -175,7 +175,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             style={{ ...s.btn, ...s.btnSecondary, padding: '8px 14px', fontSize: 13 }}
             onClick={() => setShowFilters(f => !f)}
           >
-            {showFilters ? '▾ An bo loc kenh' : '▸ Bo loc kenh (khi cao ca kenh)'}
+            {showFilters ? '▾ Ẩn bộ lọc kênh' : '▸ Bộ lọc kênh (khi cào cả kênh)'}
           </button>
         </div>
 
@@ -184,23 +184,23 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             {/* Row 1: Max videos + Sort */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>So video toi da:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Số video tối đa:</span>
                 <input
-                  type="number" min="0" placeholder="0 = tat ca"
+                  type="number" min="0" placeholder="0 = tất cả"
                   value={options.maxVideos || ''}
                   onChange={e => setOptions(o => ({ ...o, maxVideos: parseInt(e.target.value) || 0 }))}
                   style={{ width: 100, padding: '6px 10px', fontSize: 13 }}
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>Thu tu:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Thứ tự:</span>
                 <select
                   value={options.sortOrder}
                   onChange={e => setOptions(o => ({ ...o, sortOrder: e.target.value }))}
                   style={{ padding: '6px 10px', fontSize: 13, background: '#0f0f0f', color: '#fff', border: '1px solid #333', borderRadius: 8, outline: 'none' }}
                 >
-                  <option value="newest">Moi nhat truoc</option>
-                  <option value="oldest">Cu nhat truoc</option>
+                  <option value="newest">Mới nhất trước</option>
+                  <option value="oldest">Cũ nhất trước</option>
                 </select>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             {/* Row 2: Min views + Min comments */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>Min luot xem:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Lượt xem tối thiểu:</span>
                 <input
                   type="number" min="0" placeholder="0"
                   value={options.minViews || ''}
@@ -217,7 +217,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>Min comments:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Bình luận tối thiểu:</span>
                 <input
                   type="number" min="0" placeholder="0"
                   value={options.minComments || ''}
@@ -230,7 +230,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             {/* Row 3: Date range */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>Tu ngay:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Từ ngày:</span>
                 <input
                   type="date"
                   value={options.dateFrom}
@@ -239,7 +239,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 13, color: '#aaa' }}>Den ngay:</span>
+                <span style={{ fontSize: 13, color: '#aaa' }}>Đến ngày:</span>
                 <input
                   type="date"
                   value={options.dateTo}
@@ -252,7 +252,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             {/* Row 4: Title keyword filters */}
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 200 }}>
-                <span style={{ fontSize: 13, color: '#aaa', whiteSpace: 'nowrap' }}>Tieu de chua:</span>
+                <span style={{ fontSize: 13, color: '#aaa', whiteSpace: 'nowrap' }}>Tiêu đề chứa:</span>
                 <input
                   type="text" placeholder="vd: MV, Official..."
                   value={options.titleKeyword}
@@ -261,7 +261,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
                 />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 200 }}>
-                <span style={{ fontSize: 13, color: '#aaa', whiteSpace: 'nowrap' }}>Loai tru:</span>
+                <span style={{ fontSize: 13, color: '#aaa', whiteSpace: 'nowrap' }}>Loại trừ:</span>
                 <input
                   type="text" placeholder="vd: Shorts, Live..."
                   value={options.titleExclude}
@@ -281,11 +281,11 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
       {progress && progress.videos.length > 0 && (
         <div style={s.progressSection}>
           <div style={s.progressHeader}>
-            <h3 style={{ fontSize: 14, color: '#fff' }}>Tien trinh xu ly</h3>
+            <h3 style={{ fontSize: 14, color: '#fff' }}>Tiến trình xử lý</h3>
             <div style={{ display: 'flex', gap: 8 }}>
               {progress.stats.totalComments > 0 && (
                 <button style={{ ...s.btn, ...s.btnSuccess }} onClick={handleDownloadAll}>
-                  ⬇ Tai TXT ({progress.stats.totalComments.toLocaleString()} comments)
+                  ⬇ Tải TXT ({progress.stats.totalComments.toLocaleString()} bình luận)
                 </button>
               )}
             </div>
@@ -293,8 +293,8 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
 
           <div style={s.progressOverall}>
             <div style={s.progressInfo}>
-              <span>Tong tien trinh: {processedVideos} / {totalVideos} video ({pct}%)</span>
-              <span>~{totalVideos - processedVideos} video con lai</span>
+              <span>Tổng tiến trình: {processedVideos} / {totalVideos} video ({pct}%)</span>
+              <span>~{totalVideos - processedVideos} video còn lại</span>
             </div>
             <div style={s.barContainer}>
               <div style={{
