@@ -23,6 +23,7 @@ setInterval(() => {
   const now = Date.now();
   for (const [jobId, job] of jobs) {
     if ((job.status === 'done' || job.status === 'error') && (now - job.startedAt) > JOB_TTL_MS) {
+      job.comments.clear();
       jobs.delete(jobId);
       listeners.delete(jobId);
     }
@@ -132,6 +133,7 @@ export async function startJob(url, options) {
     logs: [],
     startedAt: Date.now(),
     _paused: false,
+    _pauseReason: null,
     _processingPromise: null,
   };
 
@@ -235,6 +237,7 @@ async function processJob(job, parsed) {
     if (err.message === 'ALL_KEYS_EXHAUSTED') {
       job.status = 'paused';
       job._paused = true;
+      job._pauseReason = 'quota';
       addLog(job, 'warn', 'All API keys exhausted. Job paused — resume when quota resets.');
     } else {
       throw err;
@@ -415,6 +418,7 @@ export function pauseJob(jobId) {
   const job = jobs.get(jobId);
   if (!job || !jobId) return false;
   job._paused = true;
+  job._pauseReason = 'manual';
   job.status = 'paused';
   addLog(job, 'info', 'Job paused');
   saveHistory(job);
@@ -426,13 +430,14 @@ export function resumeJob(jobId) {
   const job = jobs.get(jobId);
   if (!job || !jobId) return false;
 
-  const wasPausedByQuota = job._paused && job.status === 'paused';
+  const wasPausedByQuota = job._pauseReason === 'quota';
   job._paused = false;
+  job._pauseReason = null;
   job.status = 'running';
   addLog(job, 'info', 'Job resumed');
   notifyListeners(jobId);
 
-  // If the processing loop exited (e.g. ALL_KEYS_EXHAUSTED), restart it
+  // Only restart processing loop if it exited due to quota exhaustion
   if (wasPausedByQuota) {
     job._processingPromise = processVideoLoop(job).then(() => {
       if (job.status === 'running') {
@@ -445,6 +450,7 @@ export function resumeJob(jobId) {
       if (err.message === 'ALL_KEYS_EXHAUSTED') {
         job.status = 'paused';
         job._paused = true;
+        job._pauseReason = 'quota';
         addLog(job, 'warn', 'All API keys exhausted again. Job paused.');
       } else {
         job.status = 'error';

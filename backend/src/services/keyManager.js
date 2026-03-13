@@ -26,9 +26,19 @@ function loadUsage() {
   } catch { usage = {}; }
 }
 
+let _usageSaveTimer = null;
+
 function saveUsage() {
   ensureDataDir();
   fs.writeFileSync(USAGE_FILE, JSON.stringify(usage, null, 2));
+}
+
+function saveUsageDebounced() {
+  if (_usageSaveTimer) return;
+  _usageSaveTimer = setTimeout(() => {
+    _usageSaveTimer = null;
+    saveUsage();
+  }, 2000);
 }
 
 function loadKeys() {
@@ -103,7 +113,7 @@ export function trackUsage(units = 1) {
     usage[key.id] = { used: 0, lastReset: today };
   }
   usage[key.id].used += units;
-  saveUsage();
+  saveUsageDebounced();
 }
 
 export function getTotalQuotaRemaining() {
