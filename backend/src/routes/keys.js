@@ -10,14 +10,33 @@ app.get('/', (c) => {
   return c.json({ keys, totalRemaining });
 });
 
-// Add key
+// Add key(s) — supports single `key` or bulk `keys` array
 app.post('/', async (c) => {
-  const { key } = await c.req.json();
-  if (!key || !key.startsWith('AIza')) {
-    return c.json({ error: 'Invalid API key format' }, 400);
+  const body = await c.req.json();
+  const rawKeys = body.keys || (body.key ? [body.key] : []);
+  const validKeys = rawKeys
+    .map(k => k.trim())
+    .filter(k => k.length > 0 && (k.startsWith('AIza') || k.startsWith('sk-api-')));
+
+  if (validKeys.length === 0) {
+    return c.json({ error: 'Không tìm thấy API key hợp lệ (bắt đầu bằng AIza...)' }, 400);
   }
-  const entry = keyManager.addKey(key);
-  return c.json({ ok: true, id: entry.id });
+
+  // Skip duplicates
+  const existing = keyManager.getAllKeys().map(k => k.key);
+  const added = [];
+  let skipped = 0;
+  for (const k of validKeys) {
+    const masked = k.slice(0, 8) + '●'.repeat(Math.max(0, k.length - 12)) + k.slice(-4);
+    if (existing.some(e => e === masked)) {
+      skipped++;
+      continue;
+    }
+    const entry = keyManager.addKey(k);
+    added.push(entry.id);
+  }
+
+  return c.json({ ok: true, added: added.length, skipped });
 });
 
 // Delete key

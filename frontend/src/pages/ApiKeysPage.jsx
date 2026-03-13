@@ -85,16 +85,20 @@ export default function ApiKeysPage({ onKeysUpdate }) {
 
   async function handleAdd() {
     if (!newKey.trim()) return;
+    // Tách nhiều key theo dòng
+    const keyList = newKey.split('\n').map(k => k.trim()).filter(k => k.length > 0);
     const res = await fetch('/api/keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: newKey.trim() }),
+      body: JSON.stringify({ keys: keyList }),
     });
     const data = await res.json();
     if (data.error) {
       alert(data.error);
       return;
     }
+    const msg = `Đã thêm ${data.added} key` + (data.skipped > 0 ? ` (bỏ qua ${data.skipped} key trùng)` : '');
+    if (data.added > 0) alert(msg);
     setNewKey('');
     fetchKeys();
   }
@@ -195,19 +199,18 @@ export default function ApiKeysPage({ onKeysUpdate }) {
         <hr style={s.divider} />
 
         <div style={s.sectionTitle}>Thêm API Key mới</div>
-        <div style={s.addRow}>
-          <input
-            type="text"
-            placeholder="Dán API key tại đây... (AIzaSy...)"
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <textarea
+            placeholder={"Dán API key tại đây... (AIzaSy...)\nMỗi dòng 1 key để thêm hàng loạt"}
             value={newKey}
             onChange={e => setNewKey(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            style={{ flex: 1, fontFamily: 'monospace' }}
+            rows={newKey.includes('\n') ? Math.min(8, newKey.split('\n').length + 1) : 1}
+            style={{ flex: 1, fontFamily: 'monospace', resize: 'vertical', minHeight: 40 }}
           />
-          <button style={s.btn} onClick={handleAdd}>+ Thêm key</button>
+          <button style={{ ...s.btn, alignSelf: 'flex-start' }} onClick={handleAdd}>+ Thêm key</button>
         </div>
         <p style={s.hint}>
-          Lấy API key tại: console.cloud.google.com → APIs & Services → Credentials
+          Hỗ trợ dán nhiều key cùng lúc — mỗi dòng 1 key. Lấy API key tại: console.cloud.google.com → APIs & Services → Credentials
         </p>
       </div>
 
