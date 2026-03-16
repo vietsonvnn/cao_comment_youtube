@@ -6,11 +6,13 @@ const app = new Hono();
 
 // Start scrape job
 app.post('/start', async (c) => {
-  const { url, options = {} } = await c.req.json();
-  if (!url) return c.json({ error: 'URL is required' }, 400);
+  const { url, urls: rawUrls, options = {} } = await c.req.json();
+  // Support both single `url` (backward compat) and `urls` array
+  const urls = rawUrls || (url ? [url] : []);
+  if (urls.length === 0) return c.json({ error: 'URL is required' }, 400);
 
   try {
-    const jobId = await scraper.startJob(url, options);
+    const jobId = await scraper.startJob(urls, options);
     return c.json({ jobId });
   } catch (err) {
     if (err.message === 'INVALID_URL') {

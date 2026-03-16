@@ -56,6 +56,7 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
     includeReplies: true,
     filterOwner: true,
     filterDuplicates: false,
+    topComments: 0,
     maxVideos: 0,
     minViews: 0,
     minComments: 0,
@@ -73,12 +74,15 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
 
   async function handleStart() {
     if (!url.trim()) return;
+    // Support multi-URL: split by newlines, filter empty
+    const urls = url.split('\n').map(u => u.trim()).filter(Boolean);
+    if (urls.length === 0) return;
     setLoading(true);
     try {
       const res = await fetch('/api/scrape/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), options }),
+        body: JSON.stringify({ urls, options }),
       });
       const data = await res.json();
       if (data.error) {
@@ -126,13 +130,13 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
       <div style={s.section}>
         <h2 style={s.h2}>Nhập URL YouTube</h2>
         <div style={s.inputGroup}>
-          <input
-            type="text"
-            placeholder="https://www.youtube.com/watch?v=... hoặc https://www.youtube.com/@channel"
+          <textarea
+            placeholder={"Nhập 1 hoặc nhiều URL (mỗi dòng 1 link):\nhttps://www.youtube.com/watch?v=...\nhttps://www.youtube.com/@channel"}
             value={url}
             onChange={e => setUrl(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleStart()}
-            style={{ flex: 1 }}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleStart(); } }}
+            rows={3}
+            style={{ flex: 1, resize: 'vertical', minHeight: 44 }}
           />
           {!isRunning && !isPaused && (
             <button
@@ -167,6 +171,15 @@ export default function ScraperPage({ progress, jobId, onJobId }) {
             <input type="checkbox" checked={options.filterDuplicates} onChange={e => setOptions(o => ({ ...o, filterDuplicates: e.target.checked }))} />
             Loại bỏ bình luận trùng lặp
           </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 13, color: '#aaa' }}>Top bình luận:</span>
+            <input
+              type="number" min="0" placeholder="0 = tất cả"
+              value={options.topComments || ''}
+              onChange={e => setOptions(o => ({ ...o, topComments: parseInt(e.target.value) || 0 }))}
+              style={{ width: 90, padding: '6px 10px', fontSize: 13 }}
+            />
+          </div>
         </div>
 
         {/* Channel filter toggle */}

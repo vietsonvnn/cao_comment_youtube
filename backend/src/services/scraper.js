@@ -103,19 +103,27 @@ export function subscribe(jobId, callback) {
   };
 }
 
-export async function startJob(url, options) {
-  const parsed = youtube.parseUrl(url);
+export async function startJob(urls, options) {
+  // Accept single url string (backward compat) or array
+  const urlList = Array.isArray(urls) ? urls : [urls];
+
+  // Parse all URLs upfront to validate
+  const parsedList = urlList.map(u => youtube.parseUrl(u));
+
   const jobId = genId();
+  // Determine type: 'multi' if more than one URL, otherwise original type
+  const type = urlList.length > 1 ? 'multi' : parsedList[0].type;
 
   const job = {
     id: jobId,
-    url,
-    type: parsed.type,
+    url: urlList.join('\n'),
+    type,
     status: 'running',
     options: {
       includeReplies: options.includeReplies ?? true,
       filterOwner: options.filterOwner ?? true,
       filterDuplicates: options.filterDuplicates ?? false,
+      topComments: Math.max(0, parseInt(options.topComments) || 0),
       maxVideos: Math.max(0, parseInt(options.maxVideos) || 0),
       minViews: Math.max(0, parseInt(options.minViews) || 0),
       minComments: Math.max(0, parseInt(options.minComments) || 0),
@@ -140,7 +148,7 @@ export async function startJob(url, options) {
   jobs.set(jobId, job);
 
   // Start processing in background
-  job._processingPromise = processJob(job, parsed).catch(err => {
+  job._processingPromise = processJob(job, parsedList).catch(err => {
     job.status = 'error';
     addLog(job, 'error', `Job failed: ${err.message}`);
     saveHistory(job);
@@ -149,88 +157,101 @@ export async function startJob(url, options) {
   return jobId;
 }
 
-async function processJob(job, parsed) {
+async function processJob(job, parsedList) {
   try {
-    if (parsed.type === 'video') {
-      addLog(job, 'info', `Fetching video info: ${parsed.videoId}`);
-      const info = await youtube.getVideoInfo(parsed.videoId);
-      job.channelOwnerId = info.channelId;
-      job.channelTitle = info.channelTitle;
-      job.videos = [{
-        videoId: info.videoId,
-        title: info.title,
-        commentCount: info.commentCount,
-        fetchedComments: 0,
-        page: 0,
-        totalPages: Math.ceil(info.commentCount / 100),
-        status: 'pending',
-      }];
-      addLog(job, 'info', `Video "${info.title}" — ~${info.commentCount.toLocaleString()} comments`);
-    } else {
-      addLog(job, 'info', `Fetching channel info...`);
-      const channelInfo = await youtube.getChannelInfo(parsed);
-      job.channelOwnerId = channelInfo.channelId;
-      job.channelTitle = channelInfo.title;
-      addLog(job, 'info', `Channel: ${channelInfo.title}`);
-
-      addLog(job, 'info', `Fetching video list...`);
-      let videos = await youtube.getChannelVideos(channelInfo.uploadsPlaylistId, (count) => {
-        addLog(job, 'info', `Found ${count} videos so far...`);
-      });
-
-      const totalBefore = videos.length;
-      const opts = job.options;
-
-      // Date range filter (validate dates)
-      if (opts.dateFrom) {
-        const from = new Date(opts.dateFrom).getTime();
-        if (!isNaN(from)) videos = videos.filter(v => new Date(v.publishedAt).getTime() >= from);
-      }
-      if (opts.dateTo) {
-        const to = new Date(opts.dateTo).getTime() + 86400000;
-        if (!isNaN(to)) videos = videos.filter(v => new Date(v.publishedAt).getTime() <= to);
+    // Process each URL (supports multi-URL)
+    for (let i = 0; i < parsedList.length; i++) {
+      const parsed = parsedList[i];
+      if (parsedList.length > 1) {
+        addLog(job, 'info', `── URL ${i + 1}/${parsedList.length} ──`);
       }
 
-      // Title keyword filter
-      if (opts.titleKeyword) {
-        const kw = opts.titleKeyword.toLowerCase();
-        videos = videos.filter(v => v.title.toLowerCase().includes(kw));
-      }
-      if (opts.titleExclude) {
-        const ex = opts.titleExclude.toLowerCase();
-        videos = videos.filter(v => !v.title.toLowerCase().includes(ex));
-      }
-
-      // Sort order
-      if (opts.sortOrder === 'oldest') {
-        videos.sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+      if (parsed.type === 'video') {
+        addLog(job, 'info', `Fetching video info: ${parsed.videoId}`);
+        const info = await youtube.getVideoInfo(parsed.videoId);
+        if (!job.channelOwnerId) job.channelOwnerId = info.channelId;
+        if (!job.channelTitle) job.channelTitle = info.channelTitle;
+        job.videos.push({
+          videoId: info.videoId,
+          title: info.title,
+          channelOwnerId: info.channelId,
+          commentCount: info.commentCount,
+          fetchedComments: 0,
+          page: 0,
+          totalPages: Math.ceil(info.commentCount / 100),
+          status: 'pending',
+        });
+        addLog(job, 'info', `Video "${info.title}" — ~${info.commentCount.toLocaleString()} comments`);
       } else {
-        videos.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        addLog(job, 'info', `Fetching channel info...`);
+        const channelInfo = await youtube.getChannelInfo(parsed);
+        if (!job.channelOwnerId) job.channelOwnerId = channelInfo.channelId;
+        if (!job.channelTitle) job.channelTitle = channelInfo.title;
+        addLog(job, 'info', `Channel: ${channelInfo.title}`);
+
+        addLog(job, 'info', `Fetching video list...`);
+        let videos = await youtube.getChannelVideos(channelInfo.uploadsPlaylistId, (count) => {
+          addLog(job, 'info', `Found ${count} videos so far...`);
+        });
+
+        const totalBefore = videos.length;
+        const opts = job.options;
+
+        // Date range filter (validate dates)
+        if (opts.dateFrom) {
+          const from = new Date(opts.dateFrom).getTime();
+          if (!isNaN(from)) videos = videos.filter(v => new Date(v.publishedAt).getTime() >= from);
+        }
+        if (opts.dateTo) {
+          const to = new Date(opts.dateTo).getTime() + 86400000;
+          if (!isNaN(to)) videos = videos.filter(v => new Date(v.publishedAt).getTime() <= to);
+        }
+
+        // Title keyword filter
+        if (opts.titleKeyword) {
+          const kw = opts.titleKeyword.toLowerCase();
+          videos = videos.filter(v => v.title.toLowerCase().includes(kw));
+        }
+        if (opts.titleExclude) {
+          const ex = opts.titleExclude.toLowerCase();
+          videos = videos.filter(v => !v.title.toLowerCase().includes(ex));
+        }
+
+        // Sort order
+        if (opts.sortOrder === 'oldest') {
+          videos.sort((a, b) => new Date(a.publishedAt) - new Date(b.publishedAt));
+        } else {
+          videos.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        }
+
+        // Max videos limit
+        if (opts.maxVideos > 0) {
+          videos = videos.slice(0, opts.maxVideos);
+        }
+
+        if (videos.length < totalBefore) {
+          addLog(job, 'info', `Filtered: ${totalBefore} → ${videos.length} videos`);
+        }
+
+        for (const v of videos) {
+          job.videos.push({
+            videoId: v.videoId,
+            title: v.title,
+            channelOwnerId: channelInfo.channelId,
+            publishedAt: v.publishedAt,
+            commentCount: 0,
+            fetchedComments: 0,
+            page: 0,
+            totalPages: 0,
+            status: 'pending',
+          });
+        }
+
+        addLog(job, 'info', `Total: ${videos.length} videos to process`);
       }
-
-      // Max videos limit
-      if (opts.maxVideos > 0) {
-        videos = videos.slice(0, opts.maxVideos);
-      }
-
-      if (videos.length < totalBefore) {
-        addLog(job, 'info', `Filtered: ${totalBefore} → ${videos.length} videos`);
-      }
-
-      job.videos = videos.map(v => ({
-        videoId: v.videoId,
-        title: v.title,
-        publishedAt: v.publishedAt,
-        commentCount: 0,
-        fetchedComments: 0,
-        page: 0,
-        totalPages: 0,
-        status: 'pending',
-      }));
-
-      addLog(job, 'info', `Total: ${videos.length} videos to process`);
     }
 
+    addLog(job, 'info', `Tổng cộng: ${job.videos.length} video cần xử lý`);
     notifyListeners(job.id);
     await processVideoLoop(job);
   } catch (err) {
@@ -278,6 +299,9 @@ async function processVideo(job, video) {
     video.commentCount = info.commentCount;
     video.totalPages = Math.ceil(info.commentCount / 100);
     viewCount = info.viewCount;
+    // Set per-video channelOwnerId (may already be set from URL parsing phase)
+    if (!video.channelOwnerId) video.channelOwnerId = info.channelId;
+    // Keep job-level for backward compat (used in snapshot/display)
     if (!job.channelOwnerId) job.channelOwnerId = info.channelId;
   } catch (err) {
     if (err.message === 'NOT_FOUND' || err.message === 'VIDEO_NOT_FOUND') {
@@ -316,6 +340,8 @@ async function processVideo(job, video) {
   const seenTexts = new Set();
   let pageToken = null;
   let page = 0;
+  // Use per-video channelOwnerId for accurate owner filtering across multi-URL jobs
+  const ownerChannelId = video.channelOwnerId || job.channelOwnerId;
 
   try {
     do {
@@ -329,7 +355,7 @@ async function processVideo(job, video) {
       job.stats.quotaUsed++;
 
       for (const comment of result.comments) {
-        if (job.options.filterOwner && comment.authorChannelId === job.channelOwnerId) {
+        if (job.options.filterOwner && comment.authorChannelId === ownerChannelId) {
           job.stats.filteredOwner++;
           continue;
         }
@@ -352,7 +378,7 @@ async function processVideo(job, video) {
               job.stats.quotaUsed++;
 
               for (const reply of replyResult.replies) {
-                if (job.options.filterOwner && reply.authorChannelId === job.channelOwnerId) {
+                if (job.options.filterOwner && reply.authorChannelId === ownerChannelId) {
                   job.stats.filteredOwner++;
                   continue;
                 }
@@ -382,6 +408,16 @@ async function processVideo(job, video) {
       notifyListeners(job.id);
       await sleep(100);
     } while (pageToken);
+
+    // Top comments filter: sort by likes desc and keep top N
+    if (job.options.topComments > 0 && comments.length > job.options.topComments) {
+      const originalCount = comments.length;
+      comments.sort((a, b) => b.likeCount - a.likeCount);
+      comments.length = job.options.topComments;
+      const removed = originalCount - comments.length;
+      job.stats.totalComments -= removed;
+      addLog(job, 'info', `Top ${job.options.topComments} filter: ${originalCount.toLocaleString()} → ${comments.length.toLocaleString()} comments`);
+    }
 
     job.comments.set(video.videoId, comments);
     video.status = 'done';
@@ -439,14 +475,7 @@ export function resumeJob(jobId) {
 
   // Only restart processing loop if it exited due to quota exhaustion
   if (wasPausedByQuota) {
-    job._processingPromise = processVideoLoop(job).then(() => {
-      if (job.status === 'running') {
-        job.status = 'done';
-        addLog(job, 'info', `Job complete! ${job.stats.totalComments.toLocaleString()} comments collected.`);
-        saveHistory(job);
-        notifyListeners(job.id);
-      }
-    }).catch(err => {
+    job._processingPromise = processVideoLoop(job).catch(err => {
       if (err.message === 'ALL_KEYS_EXHAUSTED') {
         job.status = 'paused';
         job._paused = true;
@@ -486,7 +515,8 @@ export function generateTxt(jobId, videoId) {
 
     lines.push(`===== Video: ${title} =====`);
     lines.push(`===== URL: https://youtube.com/watch?v=${vid} =====`);
-    lines.push(`===== Total: ${comments.length.toLocaleString()} comments =====`);
+    const topLabel = job.options.topComments > 0 ? ` (Top ${job.options.topComments})` : '';
+    lines.push(`===== Tổng: ${comments.length.toLocaleString()} comments${topLabel} =====`);
     lines.push('');
 
     for (const c of comments) {

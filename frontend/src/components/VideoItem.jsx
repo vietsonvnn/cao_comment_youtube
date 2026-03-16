@@ -101,7 +101,7 @@ export default function VideoItem({ video, jobId }) {
   } else if (video.status === 'done') {
     metaText = `${video.fetchedComments.toLocaleString()} bình luận`;
   } else if (video.status === 'disabled') {
-    metaText = 'Bình luận đã bị tắt trên video này';
+    metaText = video.error || 'Bình luận đã bị tắt trên video này';
   } else if (video.status === 'error') {
     metaText = `Lỗi: ${video.error || 'Không xác định'} — ${video.fetchedComments > 0 ? video.fetchedComments.toLocaleString() + ' bình luận đã lấy' : ''}`;
   } else {
